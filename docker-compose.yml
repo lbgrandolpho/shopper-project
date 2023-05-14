@@ -5,7 +5,6 @@ services:
     build:
       context: ./backend
       target: runtime
-    env_file: ./backend/.env
     ports:
       - 3000:3000
     networks:
