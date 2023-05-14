@@ -42,7 +42,7 @@ export function validatePriceChangeIsntTooBig(
 
   for (const product of products) {
     const newPrice = newPriceMapping.get(BigInt(product.code)) || 0;
-    const currentPrice = Number(product.cost_price);
+    const currentPrice = Number(product.sales_price);
 
     const priceDifference = Math.abs(newPrice - currentPrice);
     const relativePriceDifference = priceDifference / currentPrice;
