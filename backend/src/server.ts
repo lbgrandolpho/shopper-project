@@ -36,7 +36,6 @@ route.get('/products', async (req: Request, res: Response) => {
 
 route.post('/products/validate', async (req: Request, res: Response) => {
   const productsUntyped = await csv().fromString(req.body);
-  console.log(productsUntyped);
 
   try {
     const products: UpdateProduct[] = z.array(UpdateProduct).parse(productsUntyped);
