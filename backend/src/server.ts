@@ -35,18 +35,18 @@ route.get('/products', async (req: Request, res: Response) => {
 // -----------------------------------------------------------------------------
 
 route.post('/products/validate', async (req: Request, res: Response) => {
-  const products_untyped = await csv().fromString(req.body);
-  console.log(products_untyped);
+  const productsUntyped = await csv().fromString(req.body);
+  console.log(productsUntyped);
 
   try {
-    const products: UpdateProduct[] = z.array(UpdateProduct).parse(products_untyped);
-    const product_ids: number[] = products.map((product) => product.product_code);
+    const products: UpdateProduct[] = z.array(UpdateProduct).parse(productsUntyped);
+    const productIds: number[] = products.map((product) => product.product_code);
 
-    const products_from_db = (
+    const productsFromDb = (
       await prisma.products.findMany({
         where: {
           code: {
-            in: product_ids,
+            in: productIds,
           },
         },
         include: {
@@ -59,15 +59,15 @@ route.post('/products/validate', async (req: Request, res: Response) => {
       })
     );
 
-    const procut_ids_from_db = products_from_db.map((product) => product.code);
+    const productIdsFromDb = productsFromDb.map((product) => product.code);
 
-    const products_map = new Map<BigInt, number>();
+    const productsMap = new Map<BigInt, number>();
     for (const product of products) {
-      products_map.set(BigInt(product.product_code), product.new_price);
+      productsMap.set(BigInt(product.product_code), product.new_price);
     }
 
-    if (product_ids.length !== procut_ids_from_db.length) {
-      const difference = product_ids.filter((id) => !procut_ids_from_db.includes(BigInt(id)));
+    if (productIds.length !== productIdsFromDb.length) {
+      const difference = productIds.filter((id) => !productIdsFromDb.includes(BigInt(id)));
       res.status(400).json({
         error_type: "missing_codes",
         missing_codes: difference,
@@ -76,11 +76,11 @@ route.post('/products/validate', async (req: Request, res: Response) => {
 
     else {
       const errors = (
-        validateNewPriceIsntLessThanCostPrice(products_from_db, products_map)
+        validateNewPriceIsntLessThanCostPrice(productsFromDb, productsMap)
       ).concat(
-        validatePriceChangeIsntTooBig(products_from_db, products_map)
+        validatePriceChangeIsntTooBig(productsFromDb, productsMap)
       ).concat(
-        validatePackPriceIsntDifferentFromSumOfUnitProducts(products_from_db, products_map)
+        validatePackPriceIsntDifferentFromSumOfUnitProducts(productsFromDb, productsMap)
       );
 
       if (errors.length > 0) {
@@ -92,12 +92,12 @@ route.post('/products/validate', async (req: Request, res: Response) => {
 
       else {
         res.status(200).json(
-          products_from_db.map((product) => {
+          productsFromDb.map((product) => {
             return {
               code: product.code,
               name: product.name,
               current_price: product.sales_price.toFixed(2),
-              new_price: products_map.get(product.code)?.toFixed(2),
+              new_price: productsMap.get(product.code)?.toFixed(2),
             };
           }
           ));
@@ -106,9 +106,9 @@ route.post('/products/validate', async (req: Request, res: Response) => {
   }
 
   catch (error: any) {
-    const zod_error: ZodError = error;
-    const error_strs: string[] = zod_error.issues.map((issue: ZodIssue) => {
-      const [line0, column_name] = issue.path;
+    const zodError: ZodError = error;
+    const errorStrs: string[] = zodError.issues.map((issue: ZodIssue) => {
+      const [line0, columnName] = issue.path;
       const line = + line0 + 2;
 
       let err = "";
@@ -128,12 +128,12 @@ route.post('/products/validate', async (req: Request, res: Response) => {
           break;
       }
 
-      return `Linha ${line} (coluna '${column_name}'): ${err}`;
+      return `Linha ${line} (coluna '${columnName}'): ${err}`;
     });
 
     res.status(400).json({
       error_type: "validation_error",
-      errors: error_strs,
+      errors: errorStrs,
     });
   }
 

@@ -1,5 +1,5 @@
 import { packs, products } from '@prisma/client';
-import { ZodError, ZodIssue, z } from 'zod';
+import { z } from 'zod';
 
 export const UpdateProduct = z.object({
   product_code: z.coerce.number().int().positive(),
