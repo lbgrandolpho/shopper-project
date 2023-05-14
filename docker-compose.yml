@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      target: runtime
+    env_file: ./backend/.env
+    ports:
+      - 3000:3000
+    networks:
+      - public
+      - private
+    volumes:
+      - ./backend:/backend
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7.33
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: shopper
+    ports:
+      - 3306:3306
+    networks:
+      - public
+      - private
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./utils/dump:/docker-entrypoint-initdb.d
+
+networks:
+  public:
+  private:
+
+volumes:
+  mysqldata:
