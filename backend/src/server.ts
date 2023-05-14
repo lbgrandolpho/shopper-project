@@ -138,6 +138,24 @@ route.post('/products/validate', async (req: Request, res: Response) => {
 
 });
 
+route.post('/products/update', async (req: Request, res: Response) => {
+  const productsUntyped = await csv().fromString(req.body);
+  const products: UpdateProduct[] = z.array(UpdateProduct).parse(productsUntyped);
+
+  for (const product of products) {
+    await prisma.products.update({
+      where: {
+        code: BigInt(product.product_code),
+      },
+      data: {
+        sales_price: product.new_price,
+      },
+    });
+  }
+
+  res.status(200).end();
+});
+
 // -----------------------------------------------------------------------------
 
 
