@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import csv from 'csvtojson';
 
 import { ZodError, ZodIssue, z } from 'zod';
+import { UpdateProduct, validateNewPriceIsntLessThanCostPrice, validatePackPriceIsntDifferentFromSumOfUnitProducts, validatePriceChangeIsntTooBig } from './validation';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unreachable code error
@@ -24,13 +25,6 @@ const route = Router();
 
 app.use(express.json());
 app.use(express.text());
-
-const UpdateProduct = z.object({
-  product_code: z.coerce.number().int().positive(),
-  new_price: z.coerce.number().positive(),
-});
-
-type UpdateProduct = z.infer<typeof UpdateProduct>;
 
 // Routes ----------------------------------------------------------------------
 
@@ -55,6 +49,13 @@ route.post('/products/validate', async (req: Request, res: Response) => {
             in: product_ids,
           },
         },
+        include: {
+          packs_packs_pack_idToproducts: {
+            include: {
+              products_packs_product_idToproducts: true,
+            }
+          }
+        },
       })
     );
 
@@ -74,16 +75,33 @@ route.post('/products/validate', async (req: Request, res: Response) => {
     }
 
     else {
-      res.status(200).json(
-        products_from_db.map((product) => {
-          return {
-            code: product.code,
-            name: product.name,
-            current_price: product.sales_price.toFixed(2),
-            new_price: products_map.get(product.code)?.toFixed(2),
-          };
-        }
-      ));
+      const errors = (
+        validateNewPriceIsntLessThanCostPrice(products_from_db, products_map)
+      ).concat(
+        validatePriceChangeIsntTooBig(products_from_db, products_map)
+      ).concat(
+        validatePackPriceIsntDifferentFromSumOfUnitProducts(products_from_db, products_map)
+      );
+
+      if (errors.length > 0) {
+        res.status(400).json({
+          error_type: "validation_error",
+          errors: errors,
+        });
+      }
+
+      else {
+        res.status(200).json(
+          products_from_db.map((product) => {
+            return {
+              code: product.code,
+              name: product.name,
+              current_price: product.sales_price.toFixed(2),
+              new_price: products_map.get(product.code)?.toFixed(2),
+            };
+          }
+          ));
+      }
     }
   }
 
