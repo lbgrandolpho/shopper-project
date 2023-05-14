@@ -32,8 +32,6 @@ const UpdateProduct = z.object({
 
 type UpdateProduct = z.infer<typeof UpdateProduct>;
 
-const UPDATE_PRODUCT_COLUMNS = ['product_code', 'new_price'];
-
 // Routes ----------------------------------------------------------------------
 
 route.get('/products', async (req: Request, res: Response) => {

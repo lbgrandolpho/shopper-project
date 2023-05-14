@@ -14,10 +14,8 @@
   "license": "ISC",
   "devDependencies": {
     "@prisma/client": "^4.14.0",
-    "@types/csv-parse": "^1.2.2",
     "@types/csvtojson": "^2.0.0",
     "@types/node": "^20.1.4",
-    "csv-parse": "^5.3.10",
     "csvtojson": "^2.0.10",
     "nodemon": "^2.0.22",
     "prisma": "^4.14.0",
