@@ -12,7 +12,7 @@ Para subir o monorepo, execute:
 docker-compose up
 ```
 
-O frontend abrirá na porta 5173, enquanto o backend abriará na porta 3000.
+O frontend abrirá na porta 5173, enquanto o backend abrirá na porta 3000.
 
 Para usar a aplicação, acesse http://localhost:5173
 
