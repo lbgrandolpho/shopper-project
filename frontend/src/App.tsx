@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const BACKEND_URL = "http://172.17.0.1:3000"
+
 function App() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isValid, setIsValid] = useState(false);
@@ -9,7 +11,7 @@ function App() {
   const handleUpdate = async () => {
     if (!csvFile) return;
     const csvContent = await csvFile.text();
-    const res = await fetch('http://localhost:3000/products/update', {
+    const res = await fetch(`${BACKEND_URL}/products/update`, {
       method: 'POST',
       mode: 'cors',
       body: csvContent,
@@ -22,7 +24,7 @@ function App() {
   const handleValidation = async () => {
     if (!csvFile) return;
     const csvContent = await csvFile.text();
-    const res = await fetch('http://localhost:3000/products/validate', {
+    const res = await fetch(`${BACKEND_URL}/products/validate`, {
       method: 'POST',
       mode: 'cors',
       body: csvContent,

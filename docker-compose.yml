@@ -29,6 +29,18 @@ services:
       - mysqldata:/var/lib/mysql
       - ./utils/dump:/docker-entrypoint-initdb.d
 
+  frontend:
+    build:
+      context: ./frontend
+      target: runtime
+    ports:
+      - 5173:5173
+    networks:
+      - public
+      - private
+    volumes:
+      - ./frontend:/frontend
+
 networks:
   public:
   private:
