@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import { ZodError, ZodIssue, z } from 'zod';
 import { UpdateProduct, validateNewPriceIsntLessThanCostPrice, validatePackPriceIsntDifferentFromSumOfUnitProducts, validatePriceChangeIsntTooBig } from './validation';
 import { parseCsv } from './parsing';
+import cors from 'cors';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unreachable code error
@@ -24,6 +25,15 @@ const route = Router();
 
 app.use(express.json());
 app.use(express.text());
+
+app.use(
+  cors({
+    origin: [
+      'http://localhost:5173',
+      'http://172.17.0.1:5173',
+    ],
+  }),
+);
 
 // Routes ----------------------------------------------------------------------
 
