@@ -6,10 +6,9 @@ import { Router, Request, Response } from 'express';
 
 import { PrismaClient } from '@prisma/client';
 
-import csv from 'csvtojson';
-
 import { ZodError, ZodIssue, z } from 'zod';
 import { UpdateProduct, validateNewPriceIsntLessThanCostPrice, validatePackPriceIsntDifferentFromSumOfUnitProducts, validatePriceChangeIsntTooBig } from './validation';
+import { parseCsv } from './parsing';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unreachable code error
@@ -35,7 +34,7 @@ route.get('/products', async (req: Request, res: Response) => {
 // -----------------------------------------------------------------------------
 
 route.post('/products/validate', async (req: Request, res: Response) => {
-  const productsUntyped = await csv().fromString(req.body);
+  const productsUntyped = parseCsv(req.body);
 
   try {
     const products: UpdateProduct[] = z.array(UpdateProduct).parse(productsUntyped);
@@ -52,6 +51,11 @@ route.post('/products/validate', async (req: Request, res: Response) => {
           packs_packs_pack_idToproducts: {
             include: {
               products_packs_product_idToproducts: true,
+            }
+          },
+          packs_packs_product_idToproducts: {
+            include: {
+              products_packs_pack_idToproducts: true,
             }
           }
         },
@@ -79,7 +83,7 @@ route.post('/products/validate', async (req: Request, res: Response) => {
       ).concat(
         validatePriceChangeIsntTooBig(productsFromDb, productsMap)
       ).concat(
-        validatePackPriceIsntDifferentFromSumOfUnitProducts(productsFromDb, productsMap)
+        await validatePackPriceIsntDifferentFromSumOfUnitProducts(productsFromDb, productsMap)
       );
 
       if (errors.length > 0) {
@@ -139,7 +143,7 @@ route.post('/products/validate', async (req: Request, res: Response) => {
 });
 
 route.post('/products/update', async (req: Request, res: Response) => {
-  const productsUntyped = await csv().fromString(req.body);
+  const productsUntyped = parseCsv(req.body);
   const products: UpdateProduct[] = z.array(UpdateProduct).parse(productsUntyped);
 
   for (const product of products) {
